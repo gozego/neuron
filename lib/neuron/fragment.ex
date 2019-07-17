@@ -1,6 +1,8 @@
 defmodule Neuron.Fragment do
   alias Neuron.Store
 
+  require Logger
+
   @doc ~S"""
   registers a fragment that will automatically be added to future mutations and queries that require it
 
@@ -48,9 +50,12 @@ defmodule Neuron.Fragment do
 
     missing_fragments = fragments_to_add |> Enum.filter(&is_atom/1) |> Enum.map(&Atom.to_string/1)
 
-    if Enum.any?(missing_fragments), do: raise("Fragments #{Enum.join(missing_fragments, ", ")} not found")
+    if Enum.any?(missing_fragments) do
+      Logger.error("Fragments #{Enum.join(missing_fragments, ", ")} not found")
+    end
 
     fragments_to_add
+    |> Enum.reject(&is_atom/1)
     |> Enum.map(&elem(&1, 1))
     |> Enum.map(&elem(&1, 0))
     |> Enum.reduce(query_string, &"#{&1} \n #{&2}")
